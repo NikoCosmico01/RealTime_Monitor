@@ -11,12 +11,11 @@ Executive::Executive(size_t num_tasks, unsigned int frame_length, unsigned int u
 {
 }
 
-void Executive::set_periodic_task(size_t task_id, std::function<void()> periodic_task, unsigned int wcet)
+void Executive::set_periodic_task(size_t task_id, std::function<void()> periodic_task, unsigned int /* wcet */)
 {
 	assert(task_id < p_tasks.size()); // Fallisce in caso di task_id non corretto (fuori range)
 
 	p_tasks[task_id].function = periodic_task;
-	p_tasks[task_id].wcet = wcet * unit_time.count();
 	p_tasks[task_id].was_missed = false;
 }
 
@@ -26,8 +25,6 @@ void Executive::add_frame(std::vector<size_t> frame)
 		assert(id < p_tasks.size()); // Fallisce in caso di task_id non corretto (fuori range)
 
 	frames.push_back(frame);
-
-	/* ... */
 }
 
 void Executive::run()
@@ -93,7 +90,7 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 
 		{
 			std::unique_lock<std::mutex> l(mutex);
-			std::cout << "sono il task e ho terminato la mia esecuzione" << task.index << std::endl;
+			//std::cout << "sono il task e ho terminato la mia esecuzione" << task.index << std::endl;
 			task.was_missed = false;
 			task.status = IDLE;
 		}
@@ -103,12 +100,10 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 void Executive::exec_function()
 {
 	unsigned int frame_id = 0;
-	unsigned int slack_time = 0;
 
 	std::cout << std::endl;
 	std::cout << "--- Executive, priorità: " << rt::this_thread::get_priority() << std::endl;
 	auto frame_n = 0;
-	auto wcet_tot = 0;
 
 	auto point = std::chrono::steady_clock::now();
 	auto start = std::chrono::high_resolution_clock::now();
@@ -119,25 +114,13 @@ void Executive::exec_function()
 			/* Rilascio dei task periodici del frame corrente*/
 			std::unique_lock<std::mutex> l(mutex); // mutex acquired here
 
-			wcet_tot = 0;
-			slack_time = 0;
-
 			std::cout << "---------- Frame: " << frame_id + 1 << " ----------" << std::endl;
 
 			// Scheduliamo in task che non i task che non sono in DEALINE
 			for (int i = 0; i < p_tasks.size(); i++)
 			{
-
-
-
-
-
-		
-
-
 				if (p_tasks[i].status == IDLE && std::count(frames[frame_id].begin(),frames[frame_id].end(),i))
 				{
-
 					try
 					{
 						rt::set_priority(p_tasks[i].thread, p_tasks[i].priority);
@@ -153,8 +136,7 @@ void Executive::exec_function()
 
 				if (p_tasks[i].status == MISSED)
 				{
-					std::cout << "leggo il missed" << std::endl;
-
+					//std::cout << "leggo il missed" << std::endl;
 					try
 					{
 						rt::set_priority(p_tasks[i].thread, rt::priority::rt_min);
@@ -181,11 +163,11 @@ void Executive::exec_function()
 				size_t id = frames[frame_id][i];
 				if (p_tasks[id].status == RUNNING)
 				{
-					std::cout << "Prima volta che il task va in deadline. TASK: " << id << std::endl;
+					//std::cout << "Prima volta che il task va in deadline. TASK: " << id << std::endl;
 					try
 					{
 						rt::set_priority(p_tasks[id].thread, rt::priority::not_rt);
-						std::cout << "ho settato la prio del task: " << id << " a " << rt::priority::not_rt << std::endl;
+						//std::cout << "ho settato la prio del task: " << id << " a " << rt::priority::not_rt << std::endl;
 					}
 					catch (rt::permission_error &)
 					{
@@ -197,7 +179,7 @@ void Executive::exec_function()
 				}
 				else if (p_tasks[id].status == PENDING)
 				{
-					std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << id << std::endl;
+					//std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << id << std::endl;
 					if (p_tasks[id].was_missed == true)
 					{
 						// missed -> pending -> missed
@@ -205,7 +187,7 @@ void Executive::exec_function()
 					}
 					else
 					{
-						std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << id << std::endl;
+						//std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << id << std::endl;
 						// Non eseguire un task in deadline miss che non ha iniziato l'esecuzione: idle -> pending -> idle
 						p_tasks[id].status = IDLE;
 					}
@@ -214,7 +196,7 @@ void Executive::exec_function()
 				{
 					if (p_tasks[id].was_missed == true)
 					{
-						std::cout << "Task USCITO dalla deadline. TASK: " << id << std::endl;
+						//std::cout << "Task USCITO dalla deadline. TASK: " << id << std::endl;
 						p_tasks[id].was_missed = false;
 					}
 				}
@@ -239,3 +221,48 @@ void Executive::exec_function()
 		}
 	}
 }
+
+/*void Executive::set_stats_observer(std::function<void(task_stats const &)> obs)
+{
+	stats_observer = obs;
+}
+
+global_stats Executive::get_global_stats()
+{
+    std::lock_guard<std::mutex> lock(mutex);
+
+    // Crea un oggetto global_stats e popola i valori
+    global_stats stats;
+    stats.num_hyperperiods = global_stats.num_hyperperiods;
+    stats.num_successful_releases = global_stats.num_successful_releases;
+    stats.num_deadline_misses = global_stats.num_deadline_misses;
+    stats.num_missed_releases = global_stats.num_missed_releases;
+
+    return stats;
+}
+
+void Executive::stats_function()
+{
+    while (true)
+    {
+        std::unique_lock<std::mutex> lock(mutex);
+        stats_cv.wait(lock);
+
+        // Calcola le statistiche per ogni task
+        for (auto &task : p_tasks)
+        {
+            task_stats stats;
+            stats.task_id = task.index;
+            stats.iper_period = global_stats.num_hyperperiods;
+            stats.num_successful_releases = task.num_successful_releases;
+            stats.num_deadline_misses = task.num_deadline_misses;
+            stats.num_missed_releases = task.num_missed_releases;
+            stats.average_execution_time = task.total_execution_time / task.num_successful_releases;
+            stats.max_execution_time = task.max_execution_time;
+
+            // Invia le statistiche tramite la funzione di callback
+            if (stats_observer)
+                stats_observer(stats);
+        }
+    }
+}*/
