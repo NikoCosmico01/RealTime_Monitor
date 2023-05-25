@@ -12,12 +12,12 @@ void task0()
 void task1()
 {
 	std::cout << "Sono il task n.1" << std::endl;
-	busy_wait(200);
+	busy_wait(222); //180
 }
 void task2()
 {
 	std::cout << "Sono il task n.2" << std::endl;
-	busy_wait(88);
+	busy_wait(1600);
 }
 
 void task3()
@@ -34,7 +34,6 @@ void task4()
 
 int main()
 {
-	//Parametri exec: task in totale, quanto grande il frame (400 millisecondi: parametro due * parametro tre), dimensione in millisecondi del quanto temporale
 	Executive exec(5, 4, 100);
 
 	exec.set_periodic_task(0, task0, 1); // tau_1
@@ -43,17 +42,14 @@ int main()
 	exec.set_periodic_task(3, task3, 3); // tau_3,2
 	exec.set_periodic_task(4, task4, 1); // tau_3,3
 	
-	//serve per aggiungere il frame
 	exec.add_frame({0,1,2});
 	exec.add_frame({0,3});
 	exec.add_frame({0,1});
 	exec.add_frame({0,1});
 	exec.add_frame({0,1,4});
+	exec.add_frame({0,1});
 	
-	//pone in esecuzione tutto
 	exec.run();
-	
-
 	
 	return 0;
 }

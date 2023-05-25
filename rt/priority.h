@@ -63,6 +63,16 @@ namespace this_thread
 priority get_priority();
 
 void set_priority(const priority & p); // throw (permission_error)
+
+class scoped_priority
+{
+	public:
+		scoped_priority(const priority & p); // throw (permission_error)
+		~scoped_priority();
+		
+	private:
+		priority ret_prio;
+};
 }
 
 // ...............................................................................................
@@ -185,6 +195,21 @@ inline bool priority::operator !=(const priority & p) const
 
 inline permission_error::permission_error(const std::string&  what_arg) : std::runtime_error(what_arg)
 {
+}
+
+namespace this_thread
+{
+
+inline scoped_priority::scoped_priority(const priority & p) : ret_prio(this_thread::get_priority())
+{
+	this_thread::set_priority(p);
+}
+		
+inline scoped_priority::~scoped_priority()
+{
+	this_thread::set_priority(ret_prio);
+}
+
 }
 
 }

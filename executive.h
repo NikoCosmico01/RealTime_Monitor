@@ -1,24 +1,15 @@
-/*Claudio Praticò 340404, Giuseppe Gabriele Tarollo 343707*/
-
 #ifndef EXECUTIVE_H
 #define EXECUTIVE_H
-#define APERIODIC -1
 
+#include <iostream>
 #include <vector>
 #include <functional>
 #include <chrono>
 #include <thread>
-#include <iostream>
-#include <sstream>
-#include <random>
 #include <mutex>
-#include <unistd.h>
-#include <sys/types.h>
 #include <condition_variable>
 #include "rt/priority.h"
 #include "rt/affinity.h"
-
-
 
 class Executive
 {
@@ -36,13 +27,13 @@ class Executive
 			wcet: tempo di esecuzione di caso peggiore (in quanti temporali).
 		*/
 		void set_periodic_task(size_t task_id, std::function<void()> periodic_task, unsigned int wcet);
-
+		
 		/* Imposta il task aperiodico (da invocare durante la creazione dello schedule):
 			aperiodic_task: funzione da eseguire al rilascio del task;
 			wcet: tempo di esecuzione di caso peggiore (in quanti temporali).
 		*/
 		void set_aperiodic_task(std::function<void()> aperiodic_task, unsigned int wcet);
-
+		
 		/* Lista di task da eseguire in un dato frame (da invocare durante la creazione dello schedule):
 			frame: lista degli id corrispondenti ai task da eseguire nel frame, in sequenza
 		*/
@@ -50,44 +41,45 @@ class Executive
 
 		/* Esegue l'applicazione */
 		void run();
-
+		
 		/* Richiede il rilascio del task aperiodico (da invocare durante l'esecuzione).
 		*/
 		void ap_task_request();
 
 	private:
-		enum thread_status {IDLE, PENDING, RUNNING};
+	
 		struct task_data
 		{
 			std::function<void()> function;
-			std::condition_variable cond;
-			std::thread thread;
-			thread_status my_status;
-
-			std::chrono::time_point<std::chrono::high_resolution_clock> start_time;
-
-
 			unsigned int wcet;
-			int index;
+			rt::priority priority;
 
+			std::thread thread;
+			std::condition_variable cond;
+			int status;
+			int index;
+			bool was_missed;
 			/* ... */
 		};
-		std::mutex mutex;
-		bool release_aperiodic;
+
+		enum th_state {IDLE, PENDING, RUNNING};
 
 		std::vector<task_data> p_tasks;
 		task_data ap_task;
-
+		bool ap_request;
+		std::mutex mutex;
+		
+		static std::chrono::_V2::system_clock::time_point start;
 		std::vector< std::vector<size_t> > frames;
-
-
+		
+		
 		const unsigned int frame_length; // lunghezza del frame (in quanti temporali)
 		const std::chrono::milliseconds unit_time; // durata dell'unita di tempo (quanto temporale)
 
 		/* ... */
-
-		static void task_function(task_data & task, std::mutex &mtx);
-
+		
+		static void task_function(task_data & task, std::mutex & mutex);
+		
 		void exec_function();
 };
 
