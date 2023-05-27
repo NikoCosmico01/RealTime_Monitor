@@ -55,8 +55,11 @@ private:
 		int status;
 		int index;
 		bool was_missed;
+		std::vector<task_stats> stats; //statistiche per iperperiodo
+
 		/* ... */
 	};
+
 
 	std::vector<task_data> p_tasks;
 	std::mutex mutex; // TODO
