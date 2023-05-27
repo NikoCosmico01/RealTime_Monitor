@@ -78,24 +78,7 @@ private:
 	std::thread stats_thread;
 	void stats_function();
 
-	struct task_stats
-	{
-		size_t task_id;
-		size_t iper_period;
-		size_t num_successful_releases;
-		size_t num_deadline_misses;
-		size_t num_missed_releases;
-		double average_execution_time;
-		double max_execution_time;
-	};
 
-	struct global_stats
-	{
-		size_t num_hyperperiods;
-		size_t num_successful_releases;
-		size_t num_deadline_misses;
-		size_t num_missed_releases;
-	};
 };
 
 #endif

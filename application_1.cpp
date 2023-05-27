@@ -3,30 +3,29 @@
 
 #include "busy_wait.h"
 
-void task0()
-{
+void task0() { //1
 	std::cout << "Sono il task n.0" << std::endl;
 	busy_wait(90);
 }
 
-void task1()
+void task1() //2
 {
 	std::cout << "Sono il task n.1" << std::endl;
-	busy_wait(222); //180
+	busy_wait(320); //180
 }
-void task2()
+void task2() //31
 {
 	std::cout << "Sono il task n.2" << std::endl;
 	busy_wait(1600);
 }
 
-void task3()
+void task3() //32
 {
 	std::cout << "Sono il task n.3" << std::endl;
-	busy_wait(270);
+	busy_wait(310);
 }
 
-void task4()
+void task4() //33
 {
 	std::cout << "Sono il task n.4" << std::endl;
 	busy_wait(80);

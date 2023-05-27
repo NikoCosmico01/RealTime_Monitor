@@ -1,0 +1,328 @@
+
+--- Executive, priorità: 99
+---------- Frame: 1 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+Schedulato (conenuto nel Frame) - ID, Stato: 2 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+DEADLINE MISS: idle -> pending -> idle.  TASK: 2
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.136ms ---
+---------- Frame: 2 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+Schedulato (conenuto nel Frame) - ID, Stato: 3 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.3
+Il TASK va in Deadline: 3
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.497ms ---
+---------- Frame: 3 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+sono il task e ho terminato la mia esecuzione1
+sono il task e ho terminato la mia esecuzione3
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.638ms ---
+---------- Frame: 4 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.887ms ---
+---------- Frame: 5 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+Schedulato (conenuto nel Frame) - ID, Stato: 4 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.4
+sono il task e ho terminato la mia esecuzione4
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.988ms ---
+---------- Frame: 6 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.961ms ---
+---------- Frame: 1 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+Schedulato (conenuto nel Frame) - ID, Stato: 2 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.2
+Il TASK va in Deadline: 2
+FINE FRAME ID, Status: 0 0 0TOP
+Schedulato (conenuto nel Frame) - ID, Stato: 3 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.3
+Il TASK va in Deadline: 3
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.965ms ---
+---------- Frame: 3 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.044ms ---
+---------- Frame: 4 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.962ms ---
+---------- Frame: 5 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Schedulato (conenuto nel Frame) - ID, Stato: 4 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.4
+sono il task e ho terminato la mia esecuzione4
+sono il task e ho terminato la mia esecuzione2
+sono il task e ho terminato la mia esecuzione3
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.139ms ---
+---------- Frame: 6 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.892ms ---
+---------- Frame: 1 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+Schedulato (conenuto nel Frame) - ID, Stato: 2 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.2
+Il TASK va in Deadline: 2
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.945ms ---
+---------- Frame: 2 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+Schedulato (conenuto nel Frame) - ID, Stato: 3 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.3
+Il TASK va in Deadline: 3
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.002ms ---
+---------- Frame: 3 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.982ms ---
+---------- Frame: 4 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.07ms ---
+---------- Frame: 5 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Schedulato (conenuto nel Frame) - ID, Stato: 4 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.4
+sono il task e ho terminato la mia esecuzione4
+sono il task e ho terminato la mia esecuzione2
+sono il task e ho terminato la mia esecuzione3
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.125ms ---
+---------- Frame: 6 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 0 0
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.884ms ---
+---------- Frame: 1 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+Schedulato (conenuto nel Frame) - ID, Stato: 2 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.2
+Il TASK va in Deadline: 2
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 0 0
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.941ms ---
+---------- Frame: 2 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+Schedulato (conenuto nel Frame) - ID, Stato: 3 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.3
+Il TASK va in Deadline: 3
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.029ms ---
+---------- Frame: 3 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+sono il task e ho terminato la mia esecuzione1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 0 0
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 399.938ms ---
+---------- Frame: 4 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+Schedulato (conenuto nel Frame) - ID, Stato: 1 1
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.1
+Il TASK va in Deadline: 1
+FINE FRAME ID, Status: 0 0 0
+FINE FRAME ID, Status: 1 3 1
+FINE FRAME ID, Status: 2 3 1
+FINE FRAME ID, Status: 3 3 1
+FINE FRAME ID, Status: 4 0 0
+--- Frame duration: 400.04ms ---
+---------- Frame: 5 ----------
+Schedulato (conenuto nel Frame) - ID, Stato: 0 1
+WAS MISSED - ID, Stato: 1 3
+WAS MISSED - ID, Stato: 2 3
+WAS MISSED - ID, Stato: 3 3
+Schedulato (conenuto nel Frame) - ID, Stato: 4 1
+Sono il task n.0
+sono il task e ho terminato la mia esecuzione0
+Sono il task n.4
+sono il task e ho terminato la mia esecuzione4
+sono il task e ho terminato la mia esecuzione2
+sono il task e ho terminato la mia esecuzione3
+sono il task e ho terminato la mia esecuzione1

@@ -81,7 +81,7 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 		{
 			std::unique_lock<std::mutex> l(mutex);
 			while (task.status == IDLE)
-			{ // status 0 sospeso, 1 attivo
+			{
 				task.cond.wait(l);
 			}
 			task.status = RUNNING;
@@ -90,10 +90,9 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 
 		{
 			std::unique_lock<std::mutex> l(mutex);
-			//std::cout << "sono il task e ho terminato la mia esecuzione" << task.index << std::endl;
 			task.was_missed = false;
 			task.status = IDLE;
-		}
+		}std::cout << "sono il task e ho terminato la mia esecuzione" << task.index << std::endl;
 	}
 }
 
@@ -130,13 +129,12 @@ void Executive::exec_function()
 						std::cerr << "Warning: RT priorities are not available" << std::endl;
 					}
 					p_tasks[i].status = PENDING;
+					std::cout<< "Schedulato (conenuto nel Frame) - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
 					p_tasks[i].cond.notify_one();
-					// std::cout<< "No Dead ID, Stato: " << id << " " << p_tasks[id].status<<std::endl;
 				}
 
 				if (p_tasks[i].status == MISSED)
 				{
-					//std::cout << "leggo il missed" << std::endl;
 					try
 					{
 						rt::set_priority(p_tasks[i].thread, rt::priority::rt_min);
@@ -145,8 +143,10 @@ void Executive::exec_function()
 					{
 						std::cerr << "Warning: RT priorities are not available" << std::endl;
 					}
-					p_tasks[i].was_missed = true;
+					//p_tasks[i].was_missed = true;
+					std::cout<< "WAS MISSED - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
 					p_tasks[i].cond.notify_one();
+					
 				}
 			}
 		} // CHIUDO MUTEX
@@ -163,7 +163,7 @@ void Executive::exec_function()
 				size_t id = frames[frame_id][i];
 				if (p_tasks[id].status == RUNNING)
 				{
-					//std::cout << "Prima volta che il task va in deadline. TASK: " << id << std::endl;
+					std::cout << "Il TASK va in Deadline: " << id << std::endl;
 					try
 					{
 						rt::set_priority(p_tasks[id].thread, rt::priority::not_rt);
@@ -179,31 +179,34 @@ void Executive::exec_function()
 				}
 				else if (p_tasks[id].status == PENDING)
 				{
-					//std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << id << std::endl;
+					
 					if (p_tasks[id].was_missed == true)
-					{
+					{	
+						std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << id << std::endl;
 						// missed -> pending -> missed
 						p_tasks[id].status = MISSED;
 					}
 					else
 					{
-						//std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << id << std::endl;
+						std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << id << std::endl;
 						// Non eseguire un task in deadline miss che non ha iniziato l'esecuzione: idle -> pending -> idle
 						p_tasks[id].status = IDLE;
 					}
 				}
-				else
+				else 
 				{
-					if (p_tasks[id].was_missed == true)
+					if (p_tasks[id].was_missed == true && p_tasks[id].status == IDLE )
 					{
-						//std::cout << "Task USCITO dalla deadline. TASK: " << id << std::endl;
+						std::cout << "Task USCITO dalla deadline. TASK: " << id << std::endl;
 						p_tasks[id].was_missed = false;
 					}
 				}
-
-				std::cout << "FINE FRAME ID, Status: " << 2 << " " << p_tasks[2].status << " " << p_tasks[2].was_missed << std::endl;
+				
+			
 			}
 
+			for (int i = 0; i < p_tasks.size(); i++)
+				std::cout << "FINE FRAME ID, Status: " << i << " " << p_tasks[i].status << " " << p_tasks[i].was_missed << std::endl;
 			// Running -> deadline
 
 			auto next = std::chrono::high_resolution_clock::now();
