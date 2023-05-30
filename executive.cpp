@@ -85,13 +85,36 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 			}
 			task.status = RUNNING;
 		}
+		auto start = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> release(start - task.start_time);
+
 		task.function();
+		
+		auto stop = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> elapsed(stop - start);
+
+		
 
 		{
 			std::unique_lock<std::mutex> l(mutex);
 			task.status = IDLE;
+			if (task.was_missed == false) {
+                //aggiorno media dei tempi di esecuzione: 3 5 num2 7
+                if (task.stats[task.actual_hyperperiod].exec_count > 0){
+                    std::cout << "Exec count "<<task.stats[task.actual_hyperperiod].exec_count << std::endl;
+                    task.stats[task.actual_hyperperiod].avg_exec_time = (task.stats[task.actual_hyperperiod].avg_exec_time * task.stats[task.actual_hyperperiod].exec_count + elapsed.count())/(task.stats[task.actual_hyperperiod].exec_count + 1);
 
-		}std::cout << "sono il task e ho terminato la mia esecuzione" << task.index << std::endl;
+                }else{
+                    task.stats[task.actual_hyperperiod].avg_exec_time = elapsed.count();
+                }
+
+                if (task.stats[task.actual_hyperperiod].max_exec_time < elapsed.count()){
+                    task.stats[task.actual_hyperperiod].max_exec_time = elapsed.count();
+                } 
+				std::cout << "- Task " << task.index << " " << "Elapsed [ms]: " << elapsed.count() << std::endl;
+			}
+			
+		}std::cout << "- Task "<< task.index << " e ho terminato la mia esecuzione" << std::endl;
 	}
 }
 
@@ -106,6 +129,9 @@ void Executive::exec_function()
 
 	auto point = std::chrono::steady_clock::now();
 	auto start = std::chrono::high_resolution_clock::now();
+	for (auto & pt: p_tasks){
+		pt.start_time = std::chrono::high_resolution_clock::now();
+	}
 
 	while (true)
 	{
@@ -113,12 +139,13 @@ void Executive::exec_function()
 			/* Rilascio dei task periodici del frame corrente*/
 			std::unique_lock<std::mutex> l(mutex); // mutex acquired here
 
-			std::cout << "----Hyperperiod: " << hyperperiod_n + 1 << "------ Frame: " << frame_id + 1 << " ----------" << std::endl;
+			std::cout << "-------------- Hyperperiod: " << hyperperiod_n + 1 << "------ Frame: " << frame_id + 1 << " --------------------" << std::endl;
 
 			// Scheduliamo in task che non i task che non sono in DEALINE
 			for (int i = 0; i < p_tasks.size(); i++)
 			{
 				//Imposto id e hyperperiodo
+				p_tasks[i].actual_hyperperiod = hyperperiod_n;
 				p_tasks[i].stats.resize(hyperperiod_n + 1);
 				p_tasks[i].stats[hyperperiod_n].task_id = i;
 				p_tasks[i].stats[hyperperiod_n].cycle_id = hyperperiod_n;
@@ -136,6 +163,8 @@ void Executive::exec_function()
 					p_tasks[i].status = PENDING;
 					std::cout<< "Schedulato (conenuto nel Frame) - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
 					p_tasks[i].cond.notify_one();
+				}else if(p_tasks[i].status == MISSED && std::count(frames[frame_id].begin(),frames[frame_id].end(),i)){
+					p_tasks[i].stats[hyperperiod_n].canc_count++; //TODO da verificare
 				}
 
 				if (p_tasks[i].status == MISSED)
@@ -149,17 +178,21 @@ void Executive::exec_function()
 						std::cerr << "Warning: RT priorities are not available" << std::endl;
 					}
 					//p_tasks[i].was_missed = true;
-					std::cout<< "WAS MISSED - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
+					std::cout<< "       WAS MISSED - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
 					p_tasks[i].cond.notify_one();
 					
 				}
 			}
+            std::cout<<std::endl;
+
 		} // CHIUDO MUTEX
+
 
 		// attesa fino al prossimo inizio frame
 		point += std::chrono::milliseconds(frame_length * unit_time);
 		std::this_thread::sleep_until(point);
 
+		std::cout << std::endl << "CONTROLLO DEADLINE " << std::endl;
 		/* Controllo delle deadline periodiche... */
 		{
 			std::unique_lock<std::mutex> l(mutex);
@@ -199,23 +232,22 @@ void Executive::exec_function()
 					{
 						std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << i << std::endl;
 						// Non eseguire un task in deadline miss che non ha iniziato l'esecuzione: idle -> pending -> idle
-						p_tasks[i].stats[hyperperiod_n].canc_count++;
+						p_tasks[i].stats[hyperperiod_n].canc_count++; //AGGIUNGERE CANC_COUNT in caso di cancellazione in altri frame a causa di un task in deadline in casi precedenti TODO
 						p_tasks[i].status = IDLE;
 					}
 				}
 				else 
 				{
-					if (std::count(frames[frame_id].begin(),frames[frame_id].end(),i)){
-						//idle e schedulato
-						p_tasks[i].stats[hyperperiod_n].exec_count++;
-						
-
-					}
+				
 					if (p_tasks[i].was_missed == true && p_tasks[i].status == IDLE )
 					{
 						std::cout << "Task USCITO dalla deadline. TASK: " << i << std::endl;
 						p_tasks[i].was_missed = false;
+
+					}else if (std::count(frames[frame_id].begin(),frames[frame_id].end(),i) && p_tasks[i].status == IDLE ){
+						//idle e schedulato
 						p_tasks[i].stats[hyperperiod_n].exec_count++;
+						
 
 					}
 				
@@ -225,10 +257,9 @@ void Executive::exec_function()
 
 			for (int i = 0; i < p_tasks.size(); i++){
 				std::cout << "FINE FRAME ID, Status: " << i << " " << p_tasks[i].status << " " << p_tasks[i].was_missed << std::endl;
-				std::cout << "Id: "<< p_tasks[i].stats[hyperperiod_n].task_id << " - Numero di rilasci: "<< p_tasks[i].stats[hyperperiod_n].exec_count << " - Numero di miss: "<< p_tasks[i].stats[hyperperiod_n].miss_count << " - Mancate esecuzioni: "<< p_tasks[i].stats[hyperperiod_n].canc_count<< std::endl;
-
+				std::cout << "Hyperperiodo: "<< hyperperiod_n << "Id: "<< p_tasks[i].stats[hyperperiod_n].task_id << " - Numero di rilasci: "<< p_tasks[i].stats[hyperperiod_n].exec_count << " - Numero di miss: "<< p_tasks[i].stats[hyperperiod_n].miss_count << " - Mancate esecuzioni: "<< p_tasks[i].stats[hyperperiod_n].canc_count  << " - Exec media: "<< p_tasks[i].stats[hyperperiod_n].avg_exec_time << " - Max time: "<< p_tasks[i].stats[hyperperiod_n].max_exec_time << std::endl;
+				
 			}
-			// Running -> deadline
 
 			auto next = std::chrono::high_resolution_clock::now();
 			std::chrono::duration<double, std::milli> elapsed(next - start);
