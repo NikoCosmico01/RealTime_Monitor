@@ -4,16 +4,16 @@
 /* statistiche di funzionamento di un singolo task, all'interno di un intervallo di execuzione */
 typedef struct
 {
-	unsigned task_id;    /* id del task a cui questa statistica è associato */
-	unsigned cycle_id;   /* id (progressivo) dell'iperperiodo in cui questa statistica è stata calcolata */
-	
+	unsigned task_id;  /* id del task a cui questa statistica è associato */
+	unsigned cycle_id; /* id (progressivo) dell'iperperiodo in cui questa statistica è stata calcolata */
+
 	unsigned exec_count; /* numero di rilasci (esecuzioni) del task, andati a buon fine */
 	unsigned miss_count; /* numero di deadline miss avvenute nell'esecuzione del task */
 	unsigned canc_count; /* numero di mancate esecuzioni (cancellazioni) del rilascio del task */
-	
+
 	float avg_exec_time; /* tempo medio di esecuzione del task (millisecondi) */
 	float max_exec_time; /* tempo massimo di esecuzione del task (millisecondi) */
-	
+
 } task_stats;
 
 /* statistiche di funzionamento globali dell'applicazione */

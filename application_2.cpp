@@ -62,7 +62,8 @@ int main()
 	exec.add_frame({0,2});
 	exec.add_frame({1,5,2});
 	
-	exec.run();
+	exec.start();
+	exec.wait();
 	
 	return 0;
 }
