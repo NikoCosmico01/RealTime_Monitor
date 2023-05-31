@@ -247,12 +247,14 @@ void Executive::exec_function()
 
 			for (int i = 0; i < singleStats.size(); i++) {
 				{
+				
 					std::unique_lock<std::mutex> lock(mutex);
-					global_statistic.canc_count += p_tasks[i].stats.canc_count;
-					global_statistic.miss_count += p_tasks[i].stats.miss_count;
-					global_statistic.exec_count += p_tasks[i].stats.exec_count;
+					global_statistic.canc_count += singleStats[i].canc_count;
+					global_statistic.miss_count += singleStats[i].miss_count;
+					global_statistic.exec_count += singleStats[i].exec_count;
 					global_statistic.cycle_count = hyperperiod_n;
 
+				
 				}
 			}
 			singleStats.clear();
