@@ -107,7 +107,7 @@ void Executive::task_function(Executive::task_data& task, std::mutex& mutex)
 			task.status = IDLE;
 			if (task.was_missed == false) {
 				if (task.stats.exec_count > 0) {
-					std::cout << "Exec count " << task.stats.exec_count << std::endl;
+
 					task.stats.avg_exec_time = (task.stats.avg_exec_time * task.stats.exec_count + elapsed.count()) / (task.stats.exec_count + 1);
 				} else {
 					task.stats.avg_exec_time = elapsed.count();
@@ -116,11 +116,15 @@ void Executive::task_function(Executive::task_data& task, std::mutex& mutex)
 				if (task.stats.max_exec_time < elapsed.count()) {
 					task.stats.max_exec_time = elapsed.count();
 				}
+#ifdef VERBOSE
 				std::cout << "- Task " << task.index << " "
 					<< "Elapsed [ms]: " << elapsed.count() << std::endl;
+#endif
 			}
 		}
+#ifdef VERBOSE
 		std::cout << "- Task " << task.index << " e ho terminato la mia esecuzione" << std::endl;
+#endif
 	}
 }
 
@@ -128,8 +132,6 @@ void Executive::exec_function()
 {
 	unsigned int frame_id = 0;
 
-	std::cout << std::endl;
-	std::cout << "--- Executive, priorità: " << rt::this_thread::get_priority() << std::endl;
 	auto frame_n = 0;
 	auto hyperperiod_n = 0;
 
@@ -141,8 +143,9 @@ void Executive::exec_function()
 
 	while (true) {
 		std::vector<task_stats> singleStats;
-		std::cout << "-------------- Hyperperiod: " << hyperperiod_n + 1 << "------ Frame: " << frame_id + 1 << " --------------------" << std::endl;
-
+#ifdef VERBOSE
+		std::cout << "*** Frame n." << frame_id << (frame_id == 0 ? " ******" : "") << std::endl;
+#endif
 		for (int i = 0; i < p_tasks.size(); i++) {
 			try {
 				{
@@ -194,40 +197,68 @@ void Executive::exec_function()
 					p_tasks[i].stats.miss_count++;
 				} else if (p_tasks[i].status == PENDING) {
 					if (p_tasks[i].was_missed) {
+#ifdef VERBOSE
 						std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << i << std::endl;
+#endif
 						p_tasks[i].status = MISSED;
 						p_tasks[i].stats.miss_count++;
 					} else {
+#ifdef VERBOSE
 						std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << i << std::endl;
+#endif
 						p_tasks[i].stats.canc_count++;
 						p_tasks[i].status = IDLE;
 					}
 				} else if (p_tasks[i].status == IDLE) {
 					if (p_tasks[i].was_missed) {
-						std::cout << "Task USCITO dalla deadline. TASK: " << i << std::endl;
+#ifdef VERBOSE
+						std::cout << "Task uscito dalla deadline. TASK: " << i << std::endl;
+#endif
 						p_tasks[i].was_missed = false;
 					} else if (std::count(frames[frame_id].begin(), frames[frame_id].end(), i)) {
 						p_tasks[i].stats.exec_count++;
 					}
+
 				}
 				singleStats.push_back(p_tasks[i].stats);
 			}
+
 		}
 
-		buffer.push_back(singleStats);
-		cond_buffer.notify_one();
+		{
+			std::unique_lock<std::mutex> l(mutex);
+			buffer.push_back(singleStats);
+			cond_buffer.notify_one();
+		}
 
 		auto next = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> elapsed(next - start);
 		start = next;
 
-		std::cout << "--- Frame duration: " << elapsed.count() << "ms"
-			<< " ---" << std::endl;
+#ifdef VERBOSE
+		std::cout << "--- Frame duration: " << elapsed.count() << "ms" << " ---" << std::endl;
+#endif
 
 		if (++frame_id == frames.size()) {
 			frame_id = 0;
 			frame_n++;
 			hyperperiod_n++;
+
+
+			for (int i = 0; i < singleStats.size(); i++) {
+				{
+					std::unique_lock<std::mutex> lock(mutex);
+					global_statistic.canc_count += p_tasks[i].stats.canc_count;
+					global_statistic.miss_count += p_tasks[i].stats.miss_count;
+					global_statistic.exec_count += p_tasks[i].stats.exec_count;
+					global_statistic.cycle_count = hyperperiod_n;
+
+				}
+			}
+			singleStats.clear();
+
+
+
 		}
 	}
 }
@@ -239,7 +270,7 @@ void Executive::set_stats_observer(std::function<void(task_stats const&)> obs)
 
 global_stats Executive::get_global_stats()
 {
-	/* ... */
+	return global_statistic;
 }
 
 void Executive::stats_function()

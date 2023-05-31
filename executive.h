@@ -47,6 +47,7 @@ public:
 
 	/* [RUN] Attende (all'infinito) finchè gira l'applicazione */
 	void wait();
+	
 
 private:
 	struct task_data
@@ -64,6 +65,7 @@ private:
 		task_stats stats;
 	};
 
+	global_stats global_statistic;
 	std::vector<task_data> p_tasks;
 		
 	std::thread exec_thread;
