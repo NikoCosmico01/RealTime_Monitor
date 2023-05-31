@@ -2,6 +2,8 @@
 #include <algorithm>
 #include "executive.h"
 
+#define VERBOSE
+
 #define IDLE 0
 #define PENDING 1
 #define RUNNING 2
@@ -34,7 +36,7 @@ void Executive::start()
 
 	for (size_t i = 0; i < p_tasks.size(); ++i)
 	{
-		assert(p_tasks[i].function); 
+		assert(p_tasks[i].function);
 
 		p_tasks[i].thread = std::thread(&Executive::task_function, std::ref(p_tasks[i]), std::ref(mutex));
 		p_tasks[i].status = IDLE;
@@ -44,10 +46,13 @@ void Executive::start()
 
 		p_tasks[i].priority = --prio;
 
-		try {
+		try
+		{
 			rt::set_priority(p_tasks[i].thread, p_tasks[i].priority);
-		} catch (rt::permission_error &e) {
-			std::cout<<"Failed to set priority"<<e.what()<<std::endl;
+		}
+		catch (rt::permission_error &e)
+		{
+			std::cout << "Failed to set priority" << e.what() << std::endl;
 		}
 	}
 
@@ -61,21 +66,26 @@ void Executive::start()
 	}
 	catch (rt::permission_error &e)
 	{
-		std::cout<<"Failed to set priority"<<e.what()<<std::endl;
+		std::cout << "Failed to set priority" << e.what() << std::endl;
 	}
 
-	if (stats_observer) {
+	if (stats_observer)
+	{
 		stats_thread = std::thread(&Executive::stats_function, this);
-		rt::set_affinity(stats_thread,aff);
-		try{
-			rt::set_priority(stats_thread,rt::priority::not_rt);
-		}catch(rt::permission_error &e){
-			std::cout<<"Failed to set priority"<<e.what()<<std::endl;	
+		rt::set_affinity(stats_thread, aff);
+		try
+		{
+			rt::set_priority(stats_thread, rt::priority::not_rt);
+		}
+		catch (rt::permission_error &e)
+		{
+			std::cout << "Failed to set priority" << e.what() << std::endl;
 		}
 	}
 }
 
-void Executive::wait(){
+void Executive::wait()
+{
 	if (stats_thread.joinable())
 		stats_thread.join();
 
@@ -101,29 +111,34 @@ void Executive::task_function(Executive::task_data &task, std::mutex &mutex)
 		std::chrono::duration<double, std::milli> release(start - task.start_time);
 
 		task.function();
-		
+
 		auto stop = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> elapsed(stop - start);
 
 		{
 			std::unique_lock<std::mutex> l(mutex);
 			task.status = IDLE;
-			if (task.was_missed == false) {
-                if (task.stats.exec_count > 0){
-                    std::cout << "Exec count "<<task.stats.exec_count << std::endl;
-                    task.stats.avg_exec_time = (task.stats.avg_exec_time * task.stats.exec_count + elapsed.count())/(task.stats.exec_count + 1);
+			if (task.was_missed == false)
+			{
+				if (task.stats.exec_count > 0)
+				{
+					std::cout << "Exec count " << task.stats.exec_count << std::endl;
+					task.stats.avg_exec_time = (task.stats.avg_exec_time * task.stats.exec_count + elapsed.count()) / (task.stats.exec_count + 1);
+				}
+				else
+				{
+					task.stats.avg_exec_time = elapsed.count();
+				}
 
-                }else{
-                    task.stats.avg_exec_time = elapsed.count();
-                }
-
-                if (task.stats.max_exec_time < elapsed.count()){
-                    task.stats.max_exec_time = elapsed.count();
-                } 
-				std::cout << "- Task " << task.index << " " << "Elapsed [ms]: " << elapsed.count() << std::endl;
+				if (task.stats.max_exec_time < elapsed.count())
+				{
+					task.stats.max_exec_time = elapsed.count();
+				}
+				std::cout << "- Task " << task.index << " "
+						  << "Elapsed [ms]: " << elapsed.count() << std::endl;
 			}
-			
-		}std::cout << "- Task "<< task.index << " e ho terminato la mia esecuzione" << std::endl;
+		}
+		std::cout << "- Task " << task.index << " e ho terminato la mia esecuzione" << std::endl;
 	}
 }
 
@@ -138,64 +153,64 @@ void Executive::exec_function()
 
 	auto point = std::chrono::steady_clock::now();
 	auto start = std::chrono::high_resolution_clock::now();
-	for (auto & pt: p_tasks){
+	for (auto &pt : p_tasks)
+	{
 		pt.start_time = std::chrono::high_resolution_clock::now();
 	}
 
 	while (true)
 	{
 		std::vector<task_stats> singleStats;
+		std::cout << "-------------- Hyperperiod: " << hyperperiod_n + 1 << "------ Frame: " << frame_id + 1 << " --------------------" << std::endl;
+
+		for (int i = 0; i < p_tasks.size(); i++)
 		{
-			std::unique_lock<std::mutex> l(mutex);
-
-			std::cout << "-------------- Hyperperiod: " << hyperperiod_n + 1 << "------ Frame: " << frame_id + 1 << " --------------------" << std::endl;
-
-			for (int i = 0; i < p_tasks.size(); i++)
+			try
 			{
-				p_tasks[i].stats.task_id = i;
-				p_tasks[i].stats.cycle_id = hyperperiod_n;
-
-				if (p_tasks[i].status == IDLE && std::count(frames[frame_id].begin(),frames[frame_id].end(),i))
 				{
-					try
+					std::unique_lock<std::mutex> lock(mutex);
+					if (std::count(frames[frame_id].begin(), frames[frame_id].end(), i))
 					{
-						rt::set_priority(p_tasks[i].thread, p_tasks[i].priority);
+						if (p_tasks[i].status == IDLE)
+						{
+							rt::set_priority(p_tasks[i].thread, p_tasks[i].priority);
+							p_tasks[i].status = PENDING;
+#ifdef VERBOSE
+							std::cout << "Schedulato (contenuto nel Frame) - ID, Stato: " << i << " " << p_tasks[i].status << std::endl;
+#endif
+							p_tasks[i].cond.notify_one();
+						}
+						else if (p_tasks[i].status == MISSED)
+						{
+							p_tasks[i].stats.canc_count++;
+						}
 					}
-					catch (rt::permission_error &e)
-					{
-						std::cout<<"Failed to set priority"<<e.what()<<std::endl;
-					}
-					p_tasks[i].status = PENDING;
-					std::cout<< "Schedulato (conenuto nel Frame) - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
-					p_tasks[i].cond.notify_one();
-				}else if(p_tasks[i].status == MISSED && std::count(frames[frame_id].begin(),frames[frame_id].end(),i)){
-					p_tasks[i].stats.canc_count++;
-				}
 
-				if (p_tasks[i].status == MISSED)
-				{
-					try
+					if (p_tasks[i].status == MISSED)
 					{
 						rt::set_priority(p_tasks[i].thread, rt::priority::rt_min);
+#ifdef VERBOSE
+						std::cout << "WAS MISSED - ID, Stato: " << i << " " << p_tasks[i].status << std::endl;
+#endif
+						p_tasks[i].cond.notify_one();
 					}
-					catch (rt::permission_error &e)
-					{
-						std::cout<<"Failed to set priority"<<e.what()<<std::endl;
-					}
-					std::cout<< "WAS MISSED - ID, Stato: " << i << " " << p_tasks[i].status<<std::endl;
-					p_tasks[i].cond.notify_one();
+					p_tasks[i].stats.task_id = i;
+					p_tasks[i].stats.cycle_id = hyperperiod_n;
 				}
 			}
-            std::cout<<std::endl;
-		} 
+			catch (rt::permission_error &e)
+			{
+				std::cout << "Failed to set priority" << e.what() << std::endl;
+			}
+		}
 
 		point += std::chrono::milliseconds(frame_length * unit_time);
 		std::this_thread::sleep_until(point);
 
+		for (int i = 0; i < p_tasks.size(); i++)
 		{
-			std::unique_lock<std::mutex> l(mutex);
-			for (int i = 0; i < p_tasks.size(); i++)
 			{
+				std::unique_lock<std::mutex> l(mutex);
 				if (p_tasks[i].status == RUNNING)
 				{
 					std::cout << "Il TASK va in Deadline: " << i << std::endl;
@@ -205,7 +220,7 @@ void Executive::exec_function()
 					}
 					catch (rt::permission_error &e)
 					{
-						std::cout<<"Failed to set priority"<<e.what()<<std::endl;
+						std::cout << "Failed to set priority" << e.what() << std::endl;
 					}
 
 					p_tasks[i].status = MISSED;
@@ -214,52 +229,54 @@ void Executive::exec_function()
 				}
 				else if (p_tasks[i].status == PENDING)
 				{
-					
-					if (p_tasks[i].was_missed == true) {	
+					if (p_tasks[i].was_missed)
+					{
 						std::cout << "DEADLINE MISS: missed -> pending -> missed.  TASK: " << i << std::endl;
 						p_tasks[i].status = MISSED;
 						p_tasks[i].stats.miss_count++;
-
 					}
-					else {
+					else
+					{
 						std::cout << "DEADLINE MISS: idle -> pending -> idle.  TASK: " << i << std::endl;
 						p_tasks[i].stats.canc_count++;
 						p_tasks[i].status = IDLE;
 					}
 				}
-				else 
+				else if (p_tasks[i].status == IDLE)
 				{
-				
-					if (p_tasks[i].was_missed == true && p_tasks[i].status == IDLE ) {
+					if (p_tasks[i].was_missed)
+					{
 						std::cout << "Task USCITO dalla deadline. TASK: " << i << std::endl;
 						p_tasks[i].was_missed = false;
-					} else if (std::count(frames[frame_id].begin(),frames[frame_id].end(),i) && p_tasks[i].status == IDLE ){
+					}
+					else if (std::count(frames[frame_id].begin(), frames[frame_id].end(), i))
+					{
 						p_tasks[i].stats.exec_count++;
 					}
 				}
 				singleStats.push_back(p_tasks[i].stats);
 			}
+		}
 
+		buffer.push_back(singleStats);
+		cond_buffer.notify_one();
 
-				buffer.push_back(singleStats);
-				cond_buffer.notify_one();
-			
+		auto next = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> elapsed(next - start);
+		start = next;
 
-			auto next = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double, std::milli> elapsed(next - start);
-			start = next;
+		std::cout << "--- Frame duration: " << elapsed.count() << "ms"
+				  << " ---" << std::endl;
 
-			std::cout << "--- Frame duration: " << elapsed.count() << "ms" << " ---" << std::endl;
-
-			if (++frame_id == frames.size())
-			{
-				frame_id = 0;
-				frame_n++;
-				hyperperiod_n++;
-			}
+		if (++frame_id == frames.size())
+		{
+			frame_id = 0;
+			frame_n++;
+			hyperperiod_n++;
 		}
 	}
 }
+
 
 void Executive::set_stats_observer(std::function<void(task_stats const &)> obs)
 {
@@ -273,22 +290,22 @@ global_stats Executive::get_global_stats()
 
 void Executive::stats_function()
 {
-    while (true)
-    {
+	while (true)
+	{
 		std::vector<task_stats> actualTask;
-        {
-            std::unique_lock<std::mutex> l(mutex);
-            while (buffer.empty())
-            {
-                cond_buffer.wait(l);
-            }
-            actualTask = buffer.front(); //Consumer
-            buffer.pop_front();
-        }
+		{
+			std::unique_lock<std::mutex> l(mutex);
+			while (buffer.empty())
+			{
+				cond_buffer.wait(l);
+			}
+			actualTask = buffer.front(); // Consumer
+			buffer.pop_front();
+		}
 
-        for(size_t i=0; i<actualTask.size(); i++){
+		for (size_t i = 0; i < actualTask.size(); i++)
+		{
 			stats_observer(actualTask[i]);
 		}
-    }
+	}
 }
-
