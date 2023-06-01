@@ -143,6 +143,7 @@ void Executive::exec_function()
 
 	while (true) {
 		std::vector<task_stats> singleStats;
+
 #ifdef VERBOSE
 		std::cout << "*** Frame n." << frame_id << (frame_id == 0 ? " ******" : "") << std::endl;
 #endif
@@ -187,7 +188,7 @@ void Executive::exec_function()
 				if (p_tasks[i].status == RUNNING) {
 					std::cout << "Il TASK va in Deadline: " << i << std::endl;
 					try {
-						rt::set_priority(p_tasks[i].thread, rt::priority::not_rt);
+						rt::set_priority(p_tasks[i].thread, rt::priority::rt_min);
 					} catch (rt::permission_error& e) {
 						std::cout << "Failed to set priority" << e.what() << std::endl;
 					}
@@ -244,19 +245,28 @@ void Executive::exec_function()
 			frame_n++;
 			hyperperiod_n++;
 
-
+			/*
 			for (int i = 0; i < singleStats.size(); i++) {
 				{
-				
+
 					std::unique_lock<std::mutex> lock(mutex);
 					global_statistic.canc_count += singleStats[i].canc_count;
 					global_statistic.miss_count += singleStats[i].miss_count;
 					global_statistic.exec_count += singleStats[i].exec_count;
 					global_statistic.cycle_count = hyperperiod_n;
 
-				
+
 				}
 			}
+			*/
+
+			{
+				std::unique_lock<std::mutex> lock(mutex);
+				std::for_each(p_tasks.begin(), p_tasks.end(), [](task_data& task) {
+					task.stats = task_stats();
+					});
+			}
+
 			singleStats.clear();
 
 
@@ -277,6 +287,9 @@ global_stats Executive::get_global_stats()
 
 void Executive::stats_function()
 {
+	global_stats stat_globale;
+	int count = 0;
+	bool azzeramento = false;
 	while (true) {
 		std::vector<task_stats> actualTask;
 		{
@@ -286,10 +299,33 @@ void Executive::stats_function()
 			}
 			actualTask = buffer.front(); // Consumer
 			buffer.pop_front();
+			count++;
+			std::cout << "count: " << count << std::endl;
 		}
 
-		for (size_t i = 0; i < actualTask.size(); i++) {
+		size_t actualTaskSize = actualTask.size();
+
+		for (size_t i = 0; i < actualTaskSize; i++) {
 			stats_observer(actualTask[i]);
+
+			if (count == frames.size()) {
+				stat_globale.canc_count += actualTask[i].canc_count;
+				stat_globale.miss_count += actualTask[i].miss_count;
+				stat_globale.exec_count += actualTask[i].exec_count;
+				stat_globale.cycle_count = actualTask[i].cycle_id + 1;
+				azzeramento = true;
+
+				{
+					std::unique_lock<std::mutex> l(mutex);
+
+					global_statistic = stat_globale;
+				}
+			}
+		}
+		if (azzeramento == true){
+			count = 0;
+			azzeramento = false;
 		}
 	}
 }
+
