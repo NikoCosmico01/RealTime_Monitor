@@ -31,8 +31,7 @@ void task4() //33
 	busy_wait(80);
 }
 
-int main()
-{
+int main() {
 	Executive exec(5, 4, 100);
 
 	exec.set_periodic_task(0, task0, 1); // tau_1
@@ -40,16 +39,16 @@ int main()
 	exec.set_periodic_task(2, task2, 1); // tau_3,1
 	exec.set_periodic_task(3, task3, 3); // tau_3,2
 	exec.set_periodic_task(4, task4, 1); // tau_3,3
-	
-	exec.add_frame({0,1,2});
-	exec.add_frame({0,3});
-	exec.add_frame({0,1});
-	exec.add_frame({0,1});
-	exec.add_frame({0,1,4});
-	exec.add_frame({0,1});
-	
+
+	exec.add_frame({ 0,1,2 });
+	exec.add_frame({ 0,3 });
+	exec.add_frame({ 0,1 });
+	exec.add_frame({ 0,1 });
+	exec.add_frame({ 0,1,4 });
+	exec.add_frame({ 0,1 });
+
 	exec.start();
 	exec.wait();
-	
+
 	return 0;
 }

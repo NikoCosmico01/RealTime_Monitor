@@ -10,27 +10,23 @@
 #define MISSED 3
 
 Executive::Executive(size_t num_tasks, unsigned int frame_length, unsigned int unit_duration)
-	: p_tasks(num_tasks), frame_length(frame_length), unit_time(unit_duration)
-{
+	: p_tasks(num_tasks), frame_length(frame_length), unit_time(unit_duration) {
 }
 
-void Executive::set_periodic_task(size_t task_id, std::function<void()> periodic_task, unsigned int /* wcet */)
-{
+void Executive::set_periodic_task(size_t task_id, std::function<void()> periodic_task, unsigned int /* wcet */) {
 	assert(task_id < p_tasks.size());
 	p_tasks[task_id].function = periodic_task;
 	p_tasks[task_id].was_missed = false;
 }
 
-void Executive::add_frame(std::vector<size_t> frame)
-{
+void Executive::add_frame(std::vector<size_t> frame) {
 	for (auto& id : frame)
 		assert(id < p_tasks.size());
 
 	frames.push_back(frame);
 }
 
-void Executive::start()
-{
+void Executive::start() {
 	rt::priority prio(rt::priority::rt_max);
 	rt::affinity aff("1");
 
@@ -73,8 +69,7 @@ void Executive::start()
 	}
 }
 
-void Executive::wait()
-{
+void Executive::wait() {
 	if (stats_thread.joinable())
 		stats_thread.join();
 
@@ -84,8 +79,7 @@ void Executive::wait()
 		pt.thread.join();
 }
 
-void Executive::task_function(Executive::task_data& task, std::mutex& mutex)
-{
+void Executive::task_function(Executive::task_data& task, std::mutex& mutex) {
 	while (true) {
 		{
 			std::unique_lock<std::mutex> l(mutex);
@@ -128,8 +122,7 @@ void Executive::task_function(Executive::task_data& task, std::mutex& mutex)
 	}
 }
 
-void Executive::exec_function()
-{
+void Executive::exec_function() {
 	unsigned int frame_id = 0;
 
 	auto frame_n = 0;
@@ -245,51 +238,40 @@ void Executive::exec_function()
 			frame_n++;
 			hyperperiod_n++;
 
-			/*
 			for (int i = 0; i < singleStats.size(); i++) {
 				{
-
 					std::unique_lock<std::mutex> lock(mutex);
 					global_statistic.canc_count += singleStats[i].canc_count;
 					global_statistic.miss_count += singleStats[i].miss_count;
 					global_statistic.exec_count += singleStats[i].exec_count;
 					global_statistic.cycle_count = hyperperiod_n;
-
-
 				}
 			}
-			*/
 
 			{
 				std::unique_lock<std::mutex> lock(mutex);
 				std::for_each(p_tasks.begin(), p_tasks.end(), [](task_data& task) {
 					task.stats = task_stats();
-					});
+							  });
 			}
-
 			singleStats.clear();
-
-
-
 		}
 	}
 }
 
-void Executive::set_stats_observer(std::function<void(task_stats const&)> obs)
-{
+void Executive::set_stats_observer(std::function<void(task_stats const&)> obs) {
 	stats_observer = obs;
 }
 
-global_stats Executive::get_global_stats()
-{
-	return global_statistic;
+global_stats Executive::get_global_stats() {
+	{
+		std::unique_lock<std::mutex> lock(mutex);
+		return global_statistic;
+	}
 }
 
-void Executive::stats_function()
-{
-	global_stats stat_globale;
-	int count = 0;
-	bool azzeramento = false;
+void Executive::stats_function() {
+
 	while (true) {
 		std::vector<task_stats> actualTask;
 		{
@@ -299,32 +281,12 @@ void Executive::stats_function()
 			}
 			actualTask = buffer.front(); // Consumer
 			buffer.pop_front();
-			count++;
-			std::cout << "count: " << count << std::endl;
 		}
 
 		size_t actualTaskSize = actualTask.size();
 
 		for (size_t i = 0; i < actualTaskSize; i++) {
 			stats_observer(actualTask[i]);
-
-			if (count == frames.size()) {
-				stat_globale.canc_count += actualTask[i].canc_count;
-				stat_globale.miss_count += actualTask[i].miss_count;
-				stat_globale.exec_count += actualTask[i].exec_count;
-				stat_globale.cycle_count = actualTask[i].cycle_id + 1;
-				azzeramento = true;
-
-				{
-					std::unique_lock<std::mutex> l(mutex);
-
-					global_statistic = stat_globale;
-				}
-			}
-		}
-		if (azzeramento == true){
-			count = 0;
-			azzeramento = false;
 		}
 	}
 }
