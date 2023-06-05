@@ -2,7 +2,7 @@ CC = g++
 CFLAGS = -O3 -Wall -pthread -std=c++11
 LFLAGS = -Lrt -pthread -lrt_pthread
 
-OUT = rt/librt_pthread.a application_1 application_2 application_3
+OUT = rt/librt_pthread.a application_1 application_2 application_3 application_4
 
 all : $(OUT)
 	
@@ -17,9 +17,6 @@ executive.o: executive.cpp executive.h
 
 busy_wait.o: busy_wait.cpp busy_wait.h
 	$(CC) $(CFLAGS) -c busy_wait.cpp
-	
-list.o: list.cpp list.h
-	gcc -Wall -c list.cpp
 
 rt/librt_pthread.a:
 	cd rt; make

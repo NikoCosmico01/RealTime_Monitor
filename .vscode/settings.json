@@ -1,6 +1,0 @@
-{
-    "editor.defaultFormatter": "trunk.io",
-    "[cpp]": {
-        "editor.defaultFormatter": "ms-vscode.cpptools"
-    }
-}
